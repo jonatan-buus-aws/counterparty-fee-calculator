@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: payment-gateway
+  mvc:
+    favicon:
+      enabled: false
+  resources:
+    add-mappings: false
+  r2dbc:
+#    url: r2dbc:${DATABASE_URL}
+#    username: ${DATABASE_USERNAME}
+#    password: ${DATABASE_USERNAME}
+    url: 'r2dbc:postgresql://192.168.1.247:5432/payment-gateway'
+    username: payment_gateway_user
+    password: payment_gateway_user
+    pool:
+      initial-size: 10
+      max-size: 100
+    initialization-mode: always
+  liquibase:
+#    url: jdbc:${DATABASE_URL}
+#    user: ${DATABASE_USERNAME}
+#    password: ${DATABASE_USERNAME}
+    url: 'jdbc:postgresql://192.168.1.247:5432/payment-gateway'
+    user: postgres
+    password: postgres
+    change-log: classpath:liquibase/db.changelog.xml
+    contexts: test
+  test:
+    database:
+      replace: none
+logging:
+  file: build/application.log
+  level:
+    org.springframework: DEBUG
+    com.example: DEBUG
+    org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping: DEBUG
+    org.springframework.web.reactive.result.method.InvocableHandlerMethod: DEBUG
+    liquibase: INFO
+
+server:
+  accessIpAddress: localhost,127.0.0.1
+  friendlyName: Test Server

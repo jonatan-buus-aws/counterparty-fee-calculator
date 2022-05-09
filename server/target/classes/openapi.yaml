@@ -1,0 +1,180 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Counterparty Fee Calculation
+  description: |
+    The service calculates the counterparty fee and exposes the following APIs:
+    * Liveness probe used for surveillance
+    * Retrieve the Counterparty Fee
+servers:
+  - url: http://localhost:8080
+security:
+  - myAuth: []
+paths:
+  /v1/liveness-probe:
+    get:
+      summary: End-point for the liveness probe, which verifies that the system is running
+      operationId: liveness_probe
+      tags:
+        - surveillance_v1
+      description: |
+        End-point for the liveness probe, which verifies that the system is running
+      responses:
+        200:
+          description: The details for the initialized payment
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusMessage'
+        503:
+          description: Temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusMessage'
+  /v1/api-docs:
+    get:
+      summary: Retrieves the API specification for the counterparty fee calculator
+      operationId: get_documentation
+      tags:
+        - documentation_v1
+      description: 
+        Retrieves the API specification for the counterparty fee calculator
+      responses:
+        200:
+          description: The Open API specification for the counterparty fee calculator
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: Internal server error - Retrieval of the Open API specification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusMessage'
+  /v1/{counterparty_id}/calculate-counterparty-fee:
+    parameters:
+      - in: path
+        name: counterparty_id
+        description: The unique id of the counterparty for whom the fee should be calculated
+        required: true
+        schema:
+          $ref: '#/components/schemas/CounterpartyId'
+    get:
+      summary: Calculates the counterparty fee for the specified counterparty
+      operationId: calculate_counterparty_fee
+      tags:
+        - fee_v1
+      description: |
+        Calculates the counterparty fee for the specified counterparty, please note that:
+        * The calculation for the counterparty fee may vary depending on the specified counterparty
+      responses:
+        200:
+          description: The details for the calculated counterparty fee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CounterpartyFee'
+        400:
+          description: Bad request - The counterparty id is missing from the path
+        403:
+          description: Forbidden - The caller has successfully authenticated, but is not authorized to calculate the counterparty fee for the specified counterparty
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusMessage'
+        404:
+          description: Not found - The specified counterparty could not be found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusMessage'
+        500:
+          description: Internal server error - Calculation of the counterparty fee failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusMessage'
+components:
+  securitySchemes:
+    myAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT based HTTP Bearer Authentication used across all services
+  schemas:
+    StatusMessage:
+      type: object
+      required:
+        - system
+        - code
+        - description
+      properties:
+        code:
+          description: The status code returned by the system
+          $ref: '#/components/schemas/STATUSCODE'
+        message:
+          description: A description of the status code returned by the system
+          type: string
+          minimum: 10
+          example: 'Invalid authorization header for end-point: /example. Authorization header must use the HTTP Bearer authentication.'
+    STATUSCODE:
+      description: The status codes that may be returned by a system
+      type: integer
+      enum:
+        - 400001
+        - 404001
+      x-enum-varnames:
+        - INVALID_COUNTERPARTY_ID
+        - COUNTERPARTY_NOT_FOUND
+      x-enum-descriptions:
+        - The specified counterparty id is invalid. A counterparty Id must be greater than or equal to 1000
+        - The configuration for the specified counterparty could not be not found
+    CounterpartyId:
+      description: The unique id of the counterparty for whom the counterparty fee will be calculated
+      type: integer
+      format: int32
+      minimum: 10000
+      example: 10045
+    Amount:
+      description: A representation of an amount used through various calculations
+      type: object
+      required:
+        - value
+        - currency
+      properties:
+        value:
+          description: The amount value in the currency's smallest unit, i.e. cents, pence etc.
+          type: integer
+          format: int64
+          minimum: 100
+          example: 1000
+        currency:
+          description: The numeric currency code as defined by ISO-4217
+          $ref: '#/components/schemas/CURRENCY'
+    CURRENCY:
+      description: Currency code as defined by ISO-4217 using the numeric codes as values and the alpha-3 codes as names
+      type: integer
+      format: ISO-4217
+      enum:
+        - 208 # Denmark Krone
+        - 978 # Euro Member Countries
+        - 826 # United Kingdom Pound
+        - 840 # United States Dollar
+      x-enum-varnames:
+        - DKK # Denmark Krone
+        - EUR # Euro Member Countries
+        - GBP # United Kingdom Pound
+        - USD # United States Dollar
+      example: EUR
+    CounterpartyFee:
+      type: object
+      required:
+        - id
+        - fee
+      properties:
+        fee:
+          $ref: '#/components/schemas/Amount'

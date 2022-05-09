@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: counterparty-fee-calculator
+  mvc:
+    favicon:
+      enabled: false
+  resources:
+    add-mappings: false
+
+logging:
+  file: build/application.log
+  level:
+    org.springframework: ${LOG_LEVEL:INFO}

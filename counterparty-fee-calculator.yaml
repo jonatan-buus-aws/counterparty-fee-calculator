@@ -21,7 +21,7 @@ spec:
           value: "8080"
         - name: LOG_LEVEL
           value: DEBUG
-        image: [AWS ACCOUNT ID].dkr.ecr.[ECR REGION].amazonaws.com/[ECR REPOSITORY]:latest
+        image: [AWS ACCOUNT ID].dkr.ecr.eu-west-1.amazonaws.com/eks-repository:latest
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3

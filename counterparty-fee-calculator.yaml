@@ -21,8 +21,8 @@ spec:
           value: "8080"
         - name: LOG_LEVEL
           value: DEBUG
-        image: 336633265046.dkr.ecr.eu-west-1.amazonaws.com/eks-repository:latest
-        imagePullPolicy: Always
+        image: [AWS ACCOUNT ID].dkr.ecr.[ECR REGION].amazonaws.com/[ECR REPOSITORY]:latest
+        imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
           httpGet:

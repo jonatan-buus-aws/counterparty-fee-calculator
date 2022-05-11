@@ -1,0 +1,39 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: counterparty-fee-calculator
+  name: counterparty-fee-calculator
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: counterparty-fee-calculator
+  template:
+    metadata:
+      labels:
+        app: counterparty-fee-calculator
+    spec:
+      containers:
+      - env:
+        - name: PORT
+          value: "8080"
+        - name: LOG_LEVEL
+          value: DEBUG
+        image: 336633265046.dkr.ecr.eu-west-1.amazonaws.com/eks-repository:latest
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/liveness-probe
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: counterparty-fee-calculator
+        ports:
+        - containerPort: 8080
+          protocol: TCP
